@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
 # fff - fucking fast file-manager.
+# Designed for compatibility with bash 4.2+
 
 get_os() {
     # Figure out the current operating system to set some specific variables.
@@ -113,7 +114,7 @@ get_ls_colors() {
     # Turn $LS_COLORS into an array.
     IFS=: read -ra ls_cols <<< "$LS_COLORS"
 
-    for ((i=0;i<${#ls_cols[@]};i++)); {
+    for ((i=0;i<${#ls_cols[@]};i++)); do
         # Separate patterns from file types.
         [[ ${ls_cols[i]} =~ ^\*[^\.] ]] &&
             ls_patterns+="${ls_cols[i]/=*}|"
@@ -124,7 +125,7 @@ get_ls_colors() {
             ls_cols[i]=${ls_cols[i]#\*}
             ls_cols[i]=ls_${ls_cols[i]#.}
         }
-    }
+    done
 
     # Strip non-ascii characters from the string as they're
     # used as a key to color the dir items and variable
@@ -346,13 +347,13 @@ draw_dir() {
     # Reset cursor position.
     printf '\e[H'
 
-    for ((i=scroll_start;i<scroll_end;i++)); {
+    for ((i=scroll_start;i<scroll_end;i++)); do
         # Don't print one too many newlines.
         ((i > scroll_start)) &&
             printf '\n'
 
         print_line "$i"
-    }
+    done
 
     # Move the cursor to its new position if it changed.
     # If the variable 'scroll_new_pos' is empty, the cursor
@@ -563,13 +564,13 @@ bulk_rename() {
         "# Clear the file to abort." > "$rename_file"
 
     # Construct the rename commands.
-    for ((i=0;i<${#marked_files[@]};i++)); {
+    for ((i=0;i<${#marked_files[@]};i++)); do
         [[ ${marked_files[i]} != "${PWD}/${changed_files[i]}" ]] && {
             printf 'mv -i -- %q %q\n' \
                 "${marked_files[i]}" "${PWD}/${changed_files[i]}"
             local renamed=1
         }
-    } >> "$rename_file"
+    done >> "$rename_file"
 
     # Let the user double-check the commands and execute them.
     ((renamed == 1)) && {
@@ -1134,12 +1135,12 @@ main() {
     redraw full
 
     # Vintage infinite loop.
-    for ((;;)); {
+    while :; do
         read "${read_flags[@]}" -srn 1 && key "$REPLY"
 
         # Exit if there is no longer a terminal attached.
         [[ -t 1 ]] || exit 1
-    }
+    done
 }
 
 main "$@"
